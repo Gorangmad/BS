@@ -61,7 +61,7 @@ push.setVapidDetails(
 
 //Database connection
 
-const url ='mongodb+srv://doadmin:2658kXKF7GtD309M@db-mongodb-fra1-68366-638f76d0.mongo.ondigitalocean.com/BhaiBhaiSweets?tls=true&authSource=admin&replicaSet=db-mongodb-fra1-68366';
+const url =`mongodb+srv://doadmin:${process.env.MONGO_SECRET}@db-mongodb-fra1-68366-638f76d0.mongo.ondigitalocean.com/BhaiBhaiSweets?tls=true&authSource=admin&replicaSet=db-mongodb-fra1-68366`;
 mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const connection = mongoose.connection;
 connection.once('open', () => {
@@ -73,7 +73,7 @@ connection.once('open', () => {
 app.use(session({
     secret: process.env.COOKIE_SECRET,
     resave: false,
-    store: MongoDbStore.create({ mongoUrl:'mongodb+srv://doadmin:2658kXKF7GtD309M@db-mongodb-fra1-68366-638f76d0.mongo.ondigitalocean.com/BhaiBhaiSweets?tls=true&authSource=admin&replicaSet=db-mongodb-fra1-68366'}),
+    store: MongoDbStore.create({ mongoUrl:`mongodb+srv://doadmin:${process.env.MONGO_SECRET}@db-mongodb-fra1-68366-638f76d0.mongo.ondigitalocean.com/BhaiBhaiSweets?tls=true&authSource=admin&replicaSet=db-mongodb-fra1-68366`}),
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 } // One month
 }))
