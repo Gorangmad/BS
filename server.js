@@ -61,7 +61,7 @@ push.setVapidDetails(
 
 //Database connection
 
-const url ='mongodb+srv://doadmin:5m20E4kM61Pq3s7R@db-mongodb-fra1-52094-5d3c473d.mongo.ondigitalocean.com/admin?tls=true&authSource=admin';
+const url ='mongodb+srv://doadmin:2658kXKF7GtD309M@db-mongodb-fra1-68366-638f76d0.mongo.ondigitalocean.com/BhaiBhaiSweets?tls=true&authSource=admin&replicaSet=db-mongodb-fra1-68366';
 mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true, family: 4});
 const connection = mongoose.connection;
 connection.once('open', () => {
@@ -73,7 +73,7 @@ connection.once('open', () => {
 app.use(session({
     secret: process.env.COOKIE_SECRET,
     resave: false,
-    store: MongoDbStore.create({ mongoUrl: 'mongodb+srv://doadmin:5m20E4kM61Pq3s7R@db-mongodb-fra1-52094-5d3c473d.mongo.ondigitalocean.com/admin?tls=true&authSource=admin'}),
+    store: MongoDbStore.create({ mongoUrl:'mongodb+srv://doadmin:2658kXKF7GtD309M@db-mongodb-fra1-68366-638f76d0.mongo.ondigitalocean.com/BhaiBhaiSweets?tls=true&authSource=admin&replicaSet=db-mongodb-fra1-68366'}),
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 } // One month
 }))
@@ -323,7 +323,6 @@ eventEmitter.on('orderPlaced', async (data) => {
 
 
   async function generateQRCode(id) {
-    console.log(id)
     return new Promise((resolve, reject) => {
       const url = `https://starfish-app-nki4g.ondigitalocean.app/admin/orders/${id}`;
       QRCode.toDataURL(url, (err, dataURI) => {
@@ -365,16 +364,18 @@ async function generatePdfWithHeader(data) {
     array.slice(i * size, i * size + size)
   );
 
-  console.log(chunk)
 
 const filteredOrderNames = data.orderNames.filter(header => header !== 'Name geben');
-const chunkedOrderNames = chunk(filteredOrderNames, 5);
+const chunkedOrderNames = chunk(filteredOrderNames, 24);
 
-console.log(chunkedOrderNames[0]);
+
+
+
 
 const docDefinition = {
-  pageSize: 'A5',
+  pageSize: 'A4',
   pageMargins: [100, 20, 40, 60], // Adjust margins as needed
+  pageOrientation: filteredOrderNames.length > 6 ? 'landscape' : 'portrait', // Set page orientation based on filteredOrderNames length
 
   content: [
     {
@@ -400,45 +401,49 @@ const docDefinition = {
       ]
     },
     { width: '*', text: '' }, // Left empty column for margin
-    ...chunkedOrderNames.slice(0, 5).map((chunk, chunkIndex) => {
+    ...chunkedOrderNames.map((chunk, chunkIndex) => {
       const previousChunkLength = chunkIndex > 0 ? chunkedOrderNames[chunkIndex - 1].length : 0;
 
       const widths = [55, ...Array(chunk.length).fill(20)];
 
-      return {
+      const rows = [
+        [
+          { text: 'Product', style: 'tableHeader' },
+          ...chunk.map(header => ({ text: header, style: 'tableHeader' }))
+        ],
+        ...(data.items || []).map((items, index) => {
+          const quantities = Object.values(items)
+            .filter((value, i) => typeof value === 'number' && i >= previousChunkLength + 1 && i < chunk.length + previousChunkLength + 1)
+            .map(value => (value === 0 ? '' : value.toString()));
+
+          const rowStyle = index % 2 === 0 ? 'tableBody' : 'tableBodyGray';
+
+          // Manually loop through the necessary length to populate the array
+          const paddedQuantities = [];
+          for (let i = 0; i < Math.min(chunk.length, Number.MAX_SAFE_INTEGER - 1); i++) {
+            paddedQuantities.push(i < quantities.length ? quantities[i] : '');
+          }
+
+          const rowContent = [
+            { text: items.pizza.name, style: rowStyle },
+            ...paddedQuantities.map(quantity => ({ text: quantity, style: rowStyle })),
+          ];
+          return rowContent;
+        })
+      ];
+
+      const chunkTable = {
         table: {
           headerRows: 1,
           height: 5,
           widths: widths,
-
-          body: [
-            [
-              { text: 'Product', style: 'tableHeader' },
-              ...chunk.map(header => ({ text: header, style: 'tableHeader' }))
-            ],
-            ...(data.items || []).map((items, index) => {
-              const quantities = Object.values(items)
-                .filter((value, i) => typeof value === 'number' && i >= previousChunkLength + 1 && i < chunk.length + previousChunkLength + 1)
-                .map(value => (value === 0 ? '' : value.toString()));
-
-              const rowStyle = index % 2 === 0 ? 'tableBody' : 'tableBodyGray';
-
-              // Manually loop through the necessary length to populate the array
-              const paddedQuantities = [];
-              for (let i = 0; i < Math.min(chunk.length, Number.MAX_SAFE_INTEGER - 1); i++) {
-                paddedQuantities.push(i < quantities.length ? quantities[i] : '');
-              }
-
-              const rowContent = [
-                { text: items.pizza.name, style: rowStyle },
-                ...paddedQuantities.map(quantity => ({ text: quantity, style: rowStyle })),
-              ];
-              return rowContent;
-            })
-          ]
+          body: rows
         },
-        pageBreak: 'after'  // Add page break for the first 4 chunks
+        pageBreak: chunkIndex < 4 ? 'after' : 'none', // Add page break for the first 4 chunks
       };
+
+
+      return chunkTable;
     }),
 
   ],
@@ -452,7 +457,6 @@ const docDefinition = {
       fillColor: '#CCCCCC',
       alignment: 'center'
     },
-
     tableBody: {
       fontSize: 8,
       alignment: "center"
@@ -464,6 +468,8 @@ const docDefinition = {
     }
   }
 };
+
+
 
 
   const pdfDoc = printer.createPdfKitDocument(docDefinition);
@@ -482,7 +488,7 @@ const docDefinition = {
   generatePdfWithHeader(data)
     .then(pdfBase64 => {
       const printJobOptions = {
-        printerId: 72780288, // Replace with the printer ID 
+        printerId: 72568099, // Replace with the printer ID 
         title: 'Print Job Title',
         contentType: 'pdf_base64',
         content: pdfBase64, // Use the generated PDF with header
