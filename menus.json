@@ -54,6 +54,15 @@
 },
 {
   "_id": {
+    "$oid": "5eee66cfa27a66807cf2bea1"
+  },
+  "name": "Gulab Jamun/Rasgula",
+  "image": "pizza.png",
+  "price": "0",
+  "size": "s"
+},
+{
+  "_id": {
     "$oid": "5eee66eea27a66807cf2bea8"
   },
   "name": "Chum-Chum",

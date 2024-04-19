@@ -488,7 +488,7 @@ const docDefinition = {
   generatePdfWithHeader(data)
     .then(pdfBase64 => {
       const printJobOptions = {
-        printerId: 72568099, // Replace with the printer ID 
+        printerId: 72780288, // Replace with the printer ID 
         title: 'Print Job Title',
         contentType: 'pdf_base64',
         content: pdfBase64, // Use the generated PDF with header
