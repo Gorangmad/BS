@@ -324,7 +324,7 @@ eventEmitter.on('orderPlaced', async (data) => {
 
   async function generateQRCode(id) {
     return new Promise((resolve, reject) => {
-      const url = `https://starfish-app-nki4g.ondigitalocean.app/admin/orders/${id}`;
+      const url = `https://lobster-app-77lrc.ondigitalocean.app/admin/orders/${id}`;
       QRCode.toDataURL(url, (err, dataURI) => {
         if (err) {
           reject(err);

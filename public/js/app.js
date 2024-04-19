@@ -34578,7 +34578,7 @@ function initSingleOrder() {
     var orderTableBody = document.querySelector('#orderBody');
     var url = window.location.pathname;
     var orderId = url.split('\\').pop().split('/').pop();
-    var data = "https://starfish-app-nki4g.ondigitalocean.app".concat(url);
+    var data = "https://lobster-app-77lrc.ondigitalocean.app".concat(url);
     var orders = [];
     var markup;
     axios__WEBPACK_IMPORTED_MODULE_0__["default"].get('/admin/orders', {

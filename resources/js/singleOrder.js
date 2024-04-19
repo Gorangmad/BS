@@ -8,7 +8,7 @@ export function initSingleOrder() {
     const url = window.location.pathname;
     const orderId = url.split('\\').pop().split('/').pop();
 
-    const data = `https://starfish-app-nki4g.ondigitalocean.app${url}`;
+    const data = `https://lobster-app-77lrc.ondigitalocean.app${url}`;
 
     let orders = [];
     let markup;
